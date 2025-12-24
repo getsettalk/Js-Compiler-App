@@ -58,7 +58,7 @@ class EditorFragment : Fragment() {
             settings.allowFileAccess = true
             settings.allowFileAccessFromFileURLs = true
             settings.allowUniversalAccessFromFileURLs = true
-            
+
             webChromeClient = WebChromeClient()
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -67,7 +67,7 @@ class EditorFragment : Fragment() {
                     }
                 }
             }
-            
+
             addJavascriptInterface(WebAppInterface(), "Android")
             loadUrl("file:///android_asset/editor.html")
         }

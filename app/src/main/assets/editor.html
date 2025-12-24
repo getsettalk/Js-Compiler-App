@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- CodeMirror CSS -->
+    <!-- CodeMirror core -->
     <link rel="stylesheet" href="codemirror/codemirror.css" />
+
+    <!-- Themes -->
     <link rel="stylesheet" href="codemirror/theme/dracula.css">
     <link rel="stylesheet" href="codemirror/theme/material-darker.css">
     <link rel="stylesheet" href="codemirror/theme/idea.css">
@@ -37,9 +39,14 @@ console.log("Hello JS Compiler");
 <script src="codemirror/javascript.js"></script>
 
 <script>
-    // IMPORTANT: make editor GLOBAL
+    /* =====================================================
+       GLOBAL
+    ===================================================== */
     let editor;
 
+    /* =====================================================
+       INIT
+    ===================================================== */
     window.onload = function () {
         editor = CodeMirror.fromTextArea(
             document.getElementById("editor"),
@@ -49,18 +56,18 @@ console.log("Hello JS Compiler");
                 theme: "dracula",
                 indentUnit: 2,
                 tabSize: 2,
-                indentWithTabs: false,
+                indentWithTabs: true,
                 smartIndent: true,
                 autofocus: true
             }
         );
 
-        // confirm bridge
         console.log("Editor Loaded");
     };
 
-    // ===== Functions called from Android =====
-
+    /* =====================================================
+       ANDROID <-> JS API
+    ===================================================== */
     function setCode(code) {
         editor.setValue(code);
     }
@@ -69,34 +76,80 @@ console.log("Hello JS Compiler");
         return editor.getValue();
     }
 
+    function setTheme(theme) {
+        editor.setOption("theme", theme);
+    }
+
+    /* =====================================================
+       CODE EXECUTION (CLEAN & STABLE)
+    ===================================================== */
     function runCode() {
         try {
 
+
             const code = editor.getValue();
-            new Function(code)();
+
+            const fn = new Function(code);
+            const result = fn();
+
+            // Show result ONLY if explicitly returned
+            if (result !== undefined) {
+                console.log(formatValue(result));
+            }
+
             console.log("✔ Done");
         } catch (e) {
-            console.error(e.message);
+            handleJsError(e);
         }
     }
 
-    // ===== Console bridge =====
+    /* =====================================================
+       ERROR HANDLING (NO LINE NUMBER LOGIC)
+    ===================================================== */
+    function handleJsError(e) {
+        const errorType = e.name || "Error";
+        const message = e.message || "Unknown error";
+
+        Android.onError(`${errorType}: ${message}`);
+    }
+
+    /* =====================================================
+       VALUE FORMATTER (FIXES undefined ISSUE)
+    ===================================================== */
+    function formatValue(value) {
+        if (value === undefined) return "undefined";
+        if (value === null) return "null";
+        if (typeof value === "object") {
+            try {
+                return JSON.stringify(value);
+            } catch {
+                return "[object]";
+            }
+        }
+        return String(value);
+    }
+
+    /* =====================================================
+       CONSOLE BRIDGE
+    ===================================================== */
     (function () {
         const oldLog = console.log;
         const oldError = console.error;
 
         console.log = function (...args) {
-            Android.onLog(args.join(" "));
+            const output = args.map(formatValue).join(" ");
+            Android.onLog(output);
             oldLog.apply(console, args);
         };
 
         console.error = function (...args) {
-            Android.onError(args.join(" "));
+            const output = args.map(formatValue).join(" ");
+            Android.onError(output);
             oldError.apply(console, args);
         };
 
-        window.onerror = function (msg, src, line) {
-            Android.onError("Error at line " + line + ": " + msg);
+        window.onerror = function (msg) {
+            Android.onError(`RuntimeError: ${msg}`);
             return true;
         };
     })();
