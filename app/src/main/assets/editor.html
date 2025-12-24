@@ -1,72 +1,106 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="codemirror/codemirror.css" />
+    <link rel="stylesheet" href="codemirror/theme/dracula.css">
+    <link rel="stylesheet" href="codemirror/theme/material-darker.css">
+    <link rel="stylesheet" href="codemirror/theme/idea.css">
+
     <style>
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            overflow: hidden; background-color: #1e1e1e;
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: #1e1e1e;
         }
-        #editor {
-            width: 100%; height: 100%;
-            color: #d4d4d4; font-family: 'Courier New', monospace;
-            font-size: 14px; background: transparent;
-            border: none; outline: none; resize: none;
-            padding: 10px; box-sizing: border-box;
-            white-space: pre; overflow: auto;
+
+        .CodeMirror {
+            height: 100%;
+            font-size: 14px;
+            background: #1e1e1e;
+            color: #d4d4d4;
         }
     </style>
 </head>
+
 <body>
-    <textarea id="editor" spellcheck="false"></textarea>
-    
-    <script>
-        const editor = document.getElementById('editor');
 
-        // JS Bridge communication
-        function setCode(code) {
-            editor.value = code;
-        }
+<textarea id="editor">// JavaScript Editor
+console.log("Hello JS Compiler");
+</textarea>
 
-        function getCode() {
-            return editor.value;
-        }
+<!-- CodeMirror JS -->
+<script src="codemirror/codemirror.js"></script>
+<script src="codemirror/javascript.js"></script>
 
-        // Capture console logs
-        (function() {
-            const oldLog = console.log;
-            const oldError = console.error;
-            
-            console.log = function(...args) {
-                Android.onLog(args.map(arg => 
-                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                ).join(' '));
-                oldLog.apply(console, args);
-            };
+<script>
+    // IMPORTANT: make editor GLOBAL
+    let editor;
 
-            console.error = function(...args) {
-                Android.onError(args.map(arg => 
-                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                ).join(' '));
-                oldError.apply(console, args);
-            };
-
-            window.onerror = function(message, source, lineno, colno, error) {
-                Android.onError(`Runtime Error: ${message} at line ${lineno}`);
-                return true;
-            };
-        })();
-
-        function runCode(version) {
-            const code = editor.value;
-            try {
-                // Here we would normally use Babel if available offline
-                // For now, we execute directly
-                new Function(code)();
-            } catch (e) {
-                console.error(e.message);
+    window.onload = function () {
+        editor = CodeMirror.fromTextArea(
+            document.getElementById("editor"),
+            {
+                mode: "javascript",
+                lineNumbers: true,
+                theme: "dracula",
+                indentUnit: 2,
+                tabSize: 2,
+                indentWithTabs: false,
+                smartIndent: true,
+                autofocus: true
             }
+        );
+
+        // confirm bridge
+        console.log("Editor Loaded");
+    };
+
+    // ===== Functions called from Android =====
+
+    function setCode(code) {
+        editor.setValue(code);
+    }
+
+    function getCode() {
+        return editor.getValue();
+    }
+
+    function runCode() {
+        try {
+
+            const code = editor.getValue();
+            new Function(code)();
+            console.log("✔ Done");
+        } catch (e) {
+            console.error(e.message);
         }
-    </script>
+    }
+
+    // ===== Console bridge =====
+    (function () {
+        const oldLog = console.log;
+        const oldError = console.error;
+
+        console.log = function (...args) {
+            Android.onLog(args.join(" "));
+            oldLog.apply(console, args);
+        };
+
+        console.error = function (...args) {
+            Android.onError(args.join(" "));
+            oldError.apply(console, args);
+        };
+
+        window.onerror = function (msg, src, line) {
+            Android.onError("Error at line " + line + ": " + msg);
+            return true;
+        };
+    })();
+</script>
+
 </body>
 </html>

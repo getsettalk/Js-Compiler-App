@@ -1,6 +1,7 @@
 package com.india.jscompiler
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -40,6 +41,20 @@ class MainActivity : AppCompatActivity() {
         binding.btnNewWorkspace.setOnClickListener {
             createNewWorkspace()
         }
+
+        // Migrate to OnBackPressedDispatcher
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    // Disable this callback and call onBackPressed to avoid infinite loop
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        })
     }
 
     private fun setupWorkspaceList() {
@@ -61,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val newWorkspace = WorkspaceEntity(
                 title = "New Script ${System.currentTimeMillis() % 1000}",
-                code = "console.log('Hello World');",
+                code = "console.log('Hello World Js Editor');",
                 jsVersion = "ES6"
             )
             val id = workspaceDao.insertWorkspace(newWorkspace)
@@ -75,15 +90,6 @@ class MainActivity : AppCompatActivity() {
         val bundle = Bundle().apply {
             putLong("workspaceId", id)
         }
-        // Use navigate with options to clear backstack if needed or handle navigation properly
         navController.navigate(R.id.editorFragment, bundle)
-    }
-
-    override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
     }
 }
