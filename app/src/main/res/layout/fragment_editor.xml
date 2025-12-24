@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground">
 
     <WebView
         android:id="@+id/webViewEditor"
@@ -11,35 +12,40 @@
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Guideline moved down to 75% to reduce console height -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
+        app:layout_constraintGuide_percent="0.75" />
 
     <LinearLayout
         android:id="@+id/console_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="#F0F0F0"
+        android:background="?android:attr/colorBackground"
         android:orientation="vertical"
+        android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/guideline">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#E0E0E0"
+            android:background="#1A808080"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="4dp">
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="2dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:padding="4dp"
                 android:text="Console Output"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <Button
@@ -47,21 +53,24 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:padding="8dp"
                 android:text="Clear"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/tv_console"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
                 android:fontFamily="monospace"
-                android:textColor="@android:color/black"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp" />
         </ScrollView>
     </LinearLayout>
